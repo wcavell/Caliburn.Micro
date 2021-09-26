@@ -1,4 +1,6 @@
-﻿#if XFORMS
+﻿
+
+#if XFORMS
 namespace Caliburn.Micro.Xamarin.Forms
 #else
 namespace Caliburn.Micro
@@ -17,9 +19,11 @@ namespace Caliburn.Micro
 #elif WINDOWS_UWP
     using Windows.UI.Xaml;
     using Microsoft.Xaml.Interactivity;
-#else
+#elif NET5_0_WINDOWS ||NET461
     using System.Windows;
     using Microsoft.Xaml.Behaviors;
+#elif WINUI
+using Microsoft.UI.Xaml;
 #endif
 
     /// <summary>

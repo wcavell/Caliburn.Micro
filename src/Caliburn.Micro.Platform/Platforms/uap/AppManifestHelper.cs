@@ -19,8 +19,13 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Xml.Linq;
-
+using System.Xml.Linq; 
+#if WINDOWS_UWP
+using Windows.UI;
+#elif WINUI
+using Windows.UI;
+using Microsoft.UI;
+#endif
 namespace Caliburn.Micro
 {
     internal class AppManifestHelper
@@ -65,7 +70,7 @@ namespace Caliburn.Micro
         public Uri LogoUri { get; set; }
         public Uri SmallLogoUri { get; set; }
         public string BackgroundColorAsString { get; set; }
-        public Windows.UI.Color BackgroundColor
+        public Color BackgroundColor
         {
             get
             {
@@ -73,12 +78,12 @@ namespace Caliburn.Micro
             }
         }
 
-        private static Windows.UI.Color ToColor(string hexValue)
+        private static Color ToColor(string hexValue)
         {
             // if 'transparent' is entered in the app manifest, return Windows.UI.Colors.Transparent
             // in order to prevent parsing failures
             if (String.Equals(hexValue, "transparent", StringComparison.OrdinalIgnoreCase))
-                return Windows.UI.Colors.Transparent;
+                return Colors.Transparent;
                 
             hexValue = hexValue.Replace("#", string.Empty);
 

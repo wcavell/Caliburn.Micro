@@ -11,6 +11,14 @@
     using Windows.UI.Xaml.Markup;
     using EventTrigger = Microsoft.Xaml.Interactions.Core.EventTriggerBehavior;
     using Windows.UI.Xaml.Shapes;
+#elif WINUI
+    using Microsoft.UI.Xaml;
+    using Microsoft.UI.Xaml.Controls;
+    using Microsoft.UI.Xaml.Controls.Primitives;
+    using Microsoft.UI.Xaml.Data;
+    using Microsoft.UI.Xaml.Markup;
+    using EventTrigger = Microsoft.Xaml.Interactions.Core.EventTriggerBehavior;
+    using Microsoft.UI.Xaml.Shapes;
 #else
     using System.ComponentModel;
     using System.Windows;
@@ -21,7 +29,7 @@
     using System.Windows.Shapes;    
     using EventTrigger = Microsoft.Xaml.Behaviors.EventTrigger;
 #endif
-#if !WINDOWS_UWP
+#if !WINDOWS_UWP&&!WINUI
     using System.Windows.Documents;
 #endif
 
@@ -52,12 +60,12 @@
         /// The default DataTemplate used for ItemsControls when required.
         /// </summary>
         public static DataTemplate DefaultItemTemplate = (DataTemplate)
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
         XamlReader.Load(
 #else
         XamlReader.Parse(
 #endif
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
             "<DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' xmlns:cal='using:Caliburn.Micro'>" +
                 "<ContentControl cal:View.Model=\"{Binding}\" VerticalContentAlignment=\"Stretch\" HorizontalContentAlignment=\"Stretch\" IsTabStop=\"False\" />" +
             "</DataTemplate>"
@@ -73,7 +81,7 @@
         /// The default DataTemplate used for Headered controls when required.
         /// </summary>
         public static DataTemplate DefaultHeaderTemplate = (DataTemplate)
-#if WINDOWS_UWP
+#if WINDOWS_UWP||WINUI
         XamlReader.Load(
 #else
         XamlReader.Parse(
@@ -109,7 +117,7 @@
         /// </summary>
         public static Action<Type, string, PropertyInfo, FrameworkElement, ElementConvention, DependencyProperty> SetBinding =
             (viewModelType, path, property, element, convention, bindableProperty) => {
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
                 var binding = new Binding { Path = new PropertyPath(path) };
 #else
                 var binding = new Binding(path);
@@ -128,7 +136,7 @@
         /// Applies the appropriate binding mode to the binding.
         /// </summary>
         public static Action<Binding, PropertyInfo> ApplyBindingMode = (binding, property) => {
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
             var setMethod = property.SetMethod;
             binding.Mode = (property.CanWrite && setMethod != null && setMethod.IsPublic) ? BindingMode.TwoWay : BindingMode.OneWay;
 #else
@@ -147,7 +155,7 @@
                 binding.ValidatesOnExceptions = true;
             }
 #endif
-#if !WINDOWS_UWP
+#if !WINDOWS_UWP &&!WINUI
             if (typeof(IDataErrorInfo).IsAssignableFrom(viewModelType)) {
                 binding.ValidatesOnDataErrors = true;
                 binding.ValidatesOnExceptions = true;
@@ -167,7 +175,7 @@
         /// Determines whether a custom string format is needed and applies it to the binding.
         /// </summary>
         public static Action<Binding, ElementConvention, PropertyInfo> ApplyStringFormat = (binding, convention, property) => {
-#if !WINDOWS_UWP
+#if !WINDOWS_UWP&&!WINUI
             if (typeof(DateTime).IsAssignableFrom(property.PropertyType))
                 binding.StringFormat = "{0:d}";
 #endif
@@ -177,13 +185,13 @@
         /// Determines whether a custom update source trigger should be applied to the binding.
         /// </summary>
         public static Action<DependencyProperty, DependencyObject, Binding, PropertyInfo> ApplyUpdateSourceTrigger = (bindableProperty, element, binding, info) => {
-#if WINDOWS_UWP || NET || NETCORE
+#if WINDOWS_UWP || NET || NETCORE||WINUI
             binding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
 #endif
         };
 
         static ConventionManager() {
-#if WINDOWS_UWP
+#if WINDOWS_UWP||WINUI
             AddElementConvention<SplitView>(SplitView.ContentProperty, "IsPaneOpen", "PaneClosing").GetBindableProperty =
                 delegate (DependencyObject foundControl)
                 {
@@ -196,17 +204,21 @@
                     return View.ModelProperty;
                };
 #endif
-#if !WINDOWS_UWP
+#if !WINDOWS_UWP&&!WINUI
             AddElementConvention<DatePicker>(DatePicker.SelectedDateProperty, "SelectedDate", "SelectedDateChanged");
 #endif
-#if WINDOWS_UWP
+#if WINDOWS_UWP||WINUI
             AddElementConvention<DatePicker>(DatePicker.DateProperty, "Date", "DateChanged");
             AddElementConvention<TimePicker>(TimePicker.TimeProperty, "Time", "TimeChanged");
             AddElementConvention<Hub>(Hub.HeaderProperty, "Header", "Loaded");
             AddElementConvention<HubSection>(HubSection.HeaderProperty, "Header", "SectionsInViewChanged");
             AddElementConvention<MenuFlyoutItem>(MenuFlyoutItem.TextProperty, "Text", "Click");
             AddElementConvention<ToggleMenuFlyoutItem>(ToggleMenuFlyoutItem.IsCheckedProperty, "IsChecked", "Click");
+#if WINDOWS_UWP
             AddElementConvention<SearchBox>(SearchBox.QueryTextProperty, "QueryText", "QuerySubmitted");
+#else
+            AddElementConvention<AutoSuggestBox>(AutoSuggestBox.PlaceholderTextProperty, "PlaceholderText", "QuerySubmitted");
+#endif 
             AddElementConvention<ToggleSwitch>(ToggleSwitch.IsOnProperty, "IsOn", "Toggled");
             AddElementConvention<ProgressRing>(ProgressRing.IsActiveProperty, "IsActive", "Loaded");
             AddElementConvention<Slider>(Slider.ValueProperty, "Value", "ValueChanged");
@@ -352,7 +364,7 @@
 
             ElementConvention propertyConvention;
             ElementConventions.TryGetValue(elementType, out propertyConvention);
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
             return propertyConvention ?? GetElementConvention(elementType.GetTypeInfo().BaseType);
 #else
             return propertyConvention ?? GetElementConvention(elementType.BaseType);
@@ -363,7 +375,7 @@
         /// Determines whether a particular dependency property already has a binding on the provided element.
         /// </summary>
         public static bool HasBinding(FrameworkElement element, DependencyProperty property) {
-#if NET || NETCORE
+#if (NET || NETCORE)&&!WINUI
             return BindingOperations.GetBindingBase(element, property) != null;
 #else
             return element.GetBindingExpression(property) != null;
@@ -422,7 +434,7 @@
                 return;
             }
 
-#if !WINDOWS_UWP
+#if !WINDOWS_UWP&&!WINUI
             if (property.PropertyType.IsGenericType) {
                 var itemType = property.PropertyType.GetGenericArguments().First();
                 if (itemType.IsValueType || typeof(string).IsAssignableFrom(itemType)) {
@@ -460,7 +472,7 @@
                 foreach (var potentialName in DerivePotentialSelectionNames(baseName)) {
                     if (viewModelType.GetPropertyCaseInsensitive(potentialName) != null) {
                         var selectionPath = path.Replace(baseName, potentialName);
-#if WINDOWS_UWP
+#if WINDOWS_UWP||WINUI
                         var binding = new Binding { Mode = BindingMode.TwoWay, Path = new PropertyPath(selectionPath) };
 #else
                         var binding = new Binding(selectionPath) { Mode = BindingMode.TwoWay };
@@ -513,7 +525,7 @@
         /// <param name="propertyName">The property to search for.</param>
         /// <returns>The property or null if not found.</returns>
         public static PropertyInfo GetPropertyCaseInsensitive(this Type type, string propertyName) {
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
             var typeInfo = type.GetTypeInfo();
             var typeList = new List<Type> { type };
 

@@ -9,6 +9,9 @@ namespace Caliburn.Micro
 #if WINDOWS_UWP
     using Windows.UI.Xaml;
     using TriggerBase = Microsoft.Xaml.Interactivity.IBehavior;
+#elif WINUI
+    using Microsoft.UI.Xaml;
+    using TriggerBase = Microsoft.Xaml.Interactivity.IBehavior;
 #elif XFORMS
     using global::Xamarin.Forms;
     using DependencyObject = global::Xamarin.Forms.BindableObject;

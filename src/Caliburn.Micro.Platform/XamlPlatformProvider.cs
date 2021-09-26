@@ -7,6 +7,10 @@
     using System.Reflection;
     using Windows.UI.Core;
     using Windows.UI.Xaml;
+#elif WINUI
+    using System.Reflection;
+    using Windows.UI.Core;
+    using Microsoft.UI.Xaml;
 #else
     using System.Windows;
     using System.Windows.Threading;
@@ -16,7 +20,7 @@
     /// A <see cref="IPlatformProvider"/> implementation for the XAML platfrom.
     /// </summary>
     public class XamlPlatformProvider : IPlatformProvider {
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
         private CoreDispatcher dispatcher;
 #else
         private Dispatcher dispatcher;
@@ -26,7 +30,7 @@
         /// Initializes a new instance of the <see cref="XamlPlatformProvider"/> class.
         /// </summary>
         public XamlPlatformProvider() {
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
             dispatcher = Window.Current.Dispatcher;
 #else
             dispatcher = Dispatcher.CurrentDispatcher;
@@ -51,7 +55,7 @@
         }
 
         private bool CheckAccess() {
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
             return dispatcher == null || Window.Current != null;
 #else
             return dispatcher == null || dispatcher.CheckAccess();
@@ -64,7 +68,7 @@
         /// <param name="action">The action to execute.</param>
         public virtual void BeginOnUIThread(System.Action action) {
             ValidateDispatcher();
-#if WINDOWS_UWP
+#if WINDOWS_UWP||WINUI
             var dummy = dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => action());
 #else
             dispatcher.BeginInvoke(action);
@@ -78,7 +82,7 @@
         /// <returns></returns>
         public virtual Task OnUIThreadAsync(Func<Task> action) {
             ValidateDispatcher();
-#if WINDOWS_UWP
+#if WINDOWS_UWP||WINUI
             return dispatcher.RunTaskAsync(action);
 #else
             return dispatcher.InvokeAsync(action).Task.Unwrap();
@@ -94,7 +98,7 @@
             if (CheckAccess())
                 action();
             else {
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
                 dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => action()).AsTask().Wait();
 #else
                 Exception exception = null;
@@ -176,14 +180,14 @@
         {
             foreach (var contextualView in views) {
                 var viewType = contextualView.GetType();
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
                 var closeMethod = viewType.GetRuntimeMethod("Close", new Type[0]);
 #else
                 var closeMethod = viewType.GetMethod("Close", new Type[0]);
 #endif
                 if (closeMethod != null)
                     return ct => {
-#if !WINDOWS_UWP
+#if !WINDOWS_UWP&&!WINUI
                         var isClosed = false;
                         if (dialogResult != null) {
                             var resultProperty = contextualView.GetType().GetProperty("DialogResult");
@@ -202,7 +206,7 @@
                         return Task.FromResult(true);
                     };
 
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
                 var isOpenProperty = viewType.GetRuntimeProperty("IsOpen");
 #else
                 var isOpenProperty = viewType.GetProperty("IsOpen");

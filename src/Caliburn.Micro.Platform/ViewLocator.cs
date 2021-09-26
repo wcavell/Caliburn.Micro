@@ -14,15 +14,19 @@ namespace Caliburn.Micro
     using UIElement = global::Xamarin.Forms.Element;
     using TextBlock = global::Xamarin.Forms.Label;
     using DependencyObject = global::Xamarin.Forms.BindableObject;
+#elif WINUI
+    using Microsoft.UI.Xaml;
+    using Microsoft.UI.Xaml.Controls;
 #elif !WINDOWS_UWP
     using System.Windows;
     using System.Windows.Controls;
+
 #else
     using Windows.UI.Xaml;
     using Windows.UI.Xaml.Controls;
 #endif
 
-#if !WINDOWS_UWP && !XFORMS
+#if !WINDOWS_UWP && !XFORMS&&!WINUI
     using System.Windows.Interop;
 #endif
 
@@ -268,7 +272,7 @@ namespace Caliburn.Micro
                 return view;
             }
 
-#if !WINDOWS_UWP && !XFORMS
+#if !WINDOWS_UWP && !XFORMS&&!WINUI
             if (viewType.IsInterface || viewType.IsAbstract || !typeof(UIElement).IsAssignableFrom(viewType))
                 return new TextBlock { Text = string.Format("Cannot create {0}.", viewType.FullName) };
 #else
@@ -396,7 +400,7 @@ namespace Caliburn.Micro
             if (viewAware != null) {
                 var view = viewAware.GetView(context) as UIElement;
                 if (view != null) {
-#if !WINDOWS_UWP && !XFORMS
+#if !WINDOWS_UWP && !XFORMS&&!WINUI
                     var windowCheck = view as Window;
                     if (windowCheck == null || (!windowCheck.IsLoaded && !(new WindowInteropHelper(windowCheck).Handle == IntPtr.Zero))) {
                         Log.Info("Using cached view for {0}.", model);
@@ -416,7 +420,7 @@ namespace Caliburn.Micro
         /// Transforms a view type into a pack uri.
         /// </summary>
         public static Func<Type, Type, string> DeterminePackUriFromType = (viewModelType, viewType) => {
-#if !WINDOWS_UWP && !XFORMS
+#if !WINDOWS_UWP && !XFORMS&&!WINUI
             var assemblyName = viewType.Assembly.GetAssemblyName();
             var applicationAssemblyName = Application.Current.GetType().Assembly.GetAssemblyName();
 #else
@@ -444,7 +448,7 @@ namespace Caliburn.Micro
         public static void InitializeComponent(object element) {
 #if XFORMS
             return;
-#elif !WINDOWS_UWP
+#elif !WINDOWS_UWP&&!WINUI
             var method = element.GetType()
                 .GetMethod("InitializeComponent", BindingFlags.Public | BindingFlags.Instance);
 

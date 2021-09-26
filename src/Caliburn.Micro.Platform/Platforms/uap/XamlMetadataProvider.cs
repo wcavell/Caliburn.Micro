@@ -1,8 +1,15 @@
 ﻿namespace Caliburn.Micro {
     using System;
     using System.Collections.Generic;
+
+#if WINDOWS_UWP
     using Windows.UI.Xaml.Markup;
     using Windows.UI.Xaml;
+#else
+    using Microsoft.UI.Xaml.Markup;
+    using Microsoft.UI.Xaml;
+#endif
+
 
     /// <summary>
     /// Implements XAML schema context concepts that support XAML parsing.
@@ -213,6 +220,8 @@
         public virtual IXamlType KeyType {
             get { throw new NotImplementedException(); }
         }
+
+        public IXamlType BoxedType => throw new NotImplementedException();
 
         public virtual object ActivateInstance() {
             throw new NotImplementedException();

@@ -5,9 +5,14 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
+using Windows.ApplicationModel.Core;
+#if WINDOWS_UWP
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-
+#else
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+#endif
 namespace Caliburn.Micro
 {
     /// <summary>
@@ -63,7 +68,10 @@ namespace Caliburn.Micro
             }
 
             isInitialized = true;
-
+#if !WINDOWS_UWP
+            Window.Current.Activated += OnWindowActivated;
+#endif
+            
             PlatformProvider.Current = new XamlPlatformProvider();
 
             var baseExtractTypes = AssemblySourceCache.ExtractTypes;
@@ -99,6 +107,10 @@ namespace Caliburn.Micro
             }
         }
 
+
+
+
+#if WINDOWS_UWP
         /// <summary>
         /// Invoked when the application creates a window.
         /// </summary>
@@ -113,14 +125,24 @@ namespace Caliburn.Micro
 
             args.Window.Activated += (s, e) => PlatformProvider.Current = new XamlPlatformProvider();
         }
+#else
+        private void OnWindowActivated(object sender, WindowActivatedEventArgs args)
+        {
+            PlatformProvider.Current = new XamlPlatformProvider();
+        }
+#endif
 
         /// <summary>
         /// Provides an opportunity to hook into the application object.
         /// </summary>
         protected virtual void PrepareApplication()
         {
+#if WINDOWS_UWP
             Resuming += OnResuming;
-            Suspending += OnSuspending;
+            Suspending += OnSuspending; 
+#endif
+
+            
             UnhandledException += OnUnhandledException;
         }
 
@@ -169,6 +191,7 @@ namespace Caliburn.Micro
         {
         }
 
+#if WINDOWS_UWP
         /// <summary>
         /// Override this to add custom behavior when the application transitions from Suspended state to Running state.
         /// </summary>
@@ -185,16 +208,26 @@ namespace Caliburn.Micro
         /// <param name="e">The event args.</param>
         protected virtual void OnSuspending(object sender, SuspendingEventArgs e)
         {
-        }
+        }        
+#endif
+
 
         /// <summary>
         /// Override this to add custom behavior for unhandled exceptions.
         /// </summary>
         /// <param name="sender">The sender.</param>
         /// <param name="e">The event args.</param>
-        protected virtual void OnUnhandledException(object sender, Windows.UI.Xaml.UnhandledExceptionEventArgs e)
+        protected virtual void OnUnhandledException(object sender,
+#if WINDOWS_UWP
+        Windows.UI.Xaml.UnhandledExceptionEventArgs e)
+#else
+        Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+#endif 
         {
+
         }
+
+       
 
         /// <summary>
         /// Creates the root frame used by the application.

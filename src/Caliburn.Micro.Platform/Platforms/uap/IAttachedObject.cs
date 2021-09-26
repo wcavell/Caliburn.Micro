@@ -1,5 +1,10 @@
 ﻿namespace Caliburn.Micro {
-    using Windows.UI.Xaml;
+#if WINDOWS_UWP
+using Windows.UI.Xaml;
+#else
+using Microsoft.UI.Xaml;
+#endif
+
 
     /// <summary>
     /// Interaface usually from the Interactivity SDK's included here for completeness.

@@ -5,10 +5,16 @@ using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Storage;
 using Windows.UI.Core;
+
+#if WINDOWS_UWP
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
-
+#elif WINUI
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Navigation;
+#endif
 namespace Caliburn.Micro
 {
     /// <summary>
@@ -16,7 +22,7 @@ namespace Caliburn.Micro
     /// </summary>
     public class FrameAdapter : INavigationService, IDisposable
     {
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
         private SystemNavigationManager navigationManager;
 #endif 
         private static readonly ILog Log = LogManager.GetLog(typeof(FrameAdapter));
@@ -43,7 +49,7 @@ namespace Caliburn.Micro
             this.frame.Navigating += OnNavigating;
             this.frame.Navigated += OnNavigated;
 
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
 
             // This could leak memory if we're creating and destorying navigation services regularly.
             // Another unlikely scenario though
@@ -319,7 +325,7 @@ namespace Caliburn.Micro
             get { return frame.CanGoBack; }
         }
 
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
         /// <summary>
         /// Gets a collection of PageStackEntry instances representing the backward navigation history of the Frame.
         /// </summary>
@@ -398,7 +404,7 @@ namespace Caliburn.Micro
             return true;
         }
 
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
         /// <summary>
         /// Occurs when the user presses the hardware Back button.
         /// </summary>
@@ -439,7 +445,7 @@ namespace Caliburn.Micro
         {
             this.frame.Navigating -= OnNavigating;
             this.frame.Navigated -= OnNavigated;
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
             navigationManager.BackRequested -= OnBackRequested;
 #endif
         }

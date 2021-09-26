@@ -14,6 +14,15 @@
     using Microsoft.Xaml.Interactivity;
     using TriggerBase = Microsoft.Xaml.Interactivity.IBehavior;
     using EventTrigger = Microsoft.Xaml.Interactions.Core.EventTriggerBehavior;
+#elif WINUI
+    using Microsoft.UI.Xaml;
+    using Microsoft.UI.Xaml.Data;
+    using Microsoft.UI.Xaml.Markup;
+    using Microsoft.UI.Xaml.Media;
+    using Microsoft.UI.Xaml.Controls;
+    using Microsoft.Xaml.Interactivity;
+    using TriggerBase = Microsoft.Xaml.Interactivity.IBehavior;
+    using EventTrigger = Microsoft.Xaml.Interactions.Core.EventTriggerBehavior;
 #else
     using System.Windows;
     using System.Windows.Controls.Primitives;
@@ -30,7 +39,7 @@
     /// <summary>
     /// Used to send a message from the UI to a presentation model class, indicating that a particular Action should be invoked.
     /// </summary>
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
     [ContentProperty(Name = "Parameters")]
 #else
     [ContentProperty("Parameters")]
@@ -94,7 +103,7 @@
         /// Gets or sets the name of the method to be invoked on the presentation model class.
         /// </summary>
         /// <value>The name of the method.</value>
-#if !WINDOWS_UWP
+#if !WINDOWS_UWP&&!WINUI
         [Category("Common Properties")]
 #endif
         public string MethodName {
@@ -106,7 +115,7 @@
         /// Gets the parameters to pass as part of the method invocation.
         /// </summary>
         /// <value>The parameters.</value>
-#if !WINDOWS_UWP
+#if !WINDOWS_UWP&&!WINUI
         [Category("Common Properties")]
 #endif
         public AttachedCollection<Parameter> Parameters {
@@ -121,7 +130,7 @@
         /// <summary>
         /// Called after the action is attached to an AssociatedObject.
         /// </summary>
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
         protected override void OnAttached() {
             if (!View.InDesignMode) {
                 Parameters.Attach(AssociatedObject);
@@ -195,16 +204,16 @@
                 }
             }
             else currentElement = context.View;
-
-#if NET || NETCORE
+#if WINDOWS_UWP||WINUI
+            var binding = new Binding {
+                Source = currentElement
+            };
+#elif NET || NETCORE
             var binding = new Binding {
                 Path = new PropertyPath(Message.HandlerProperty), 
                 Source = currentElement
             };
-#elif WINDOWS_UWP
-            var binding = new Binding {
-                Source = currentElement
-            };
+
 #elif NET5_0_WINDOWS
             const string bindingText = "<Binding xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation\' xmlns:cal='clr-namespace:Caliburn.Micro;assembly=Caliburn.Micro.Platform' Path='(cal:Message.Handler)' />";
             StringReader stringReader = new StringReader(bindingText);
@@ -347,7 +356,7 @@
         /// <remarks>Returns a value indicating whether or not the action is available.</remarks>
         public static Func<ActionExecutionContext, bool> ApplyAvailabilityEffect = context => {
 
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
             var source = context.Source as Control;
 #else
             var source = context.Source;
@@ -356,7 +365,7 @@
                 return true;
             }
 
-#if WINDOWS_UWP
+#if WINDOWS_UWP||WINUI
             var hasBinding = ConventionManager.HasBinding(source, Control.IsEnabledProperty);
 #else
             var hasBinding = ConventionManager.HasBinding(source, UIElement.IsEnabledProperty);
@@ -373,7 +382,7 @@
         /// </summary>
         /// <returns>The matching method, if available.</returns>
         public static Func<ActionMessage, object, MethodInfo> GetTargetMethod = (message, target) => {
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
             return (from method in target.GetType().GetRuntimeMethods()
                     where method.Name == message.MethodName
                     let methodParameters = method.GetParameters()
@@ -550,7 +559,7 @@
 
         static MethodInfo GetMethodInfo(Type t, string methodName)
         {
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
             return t.GetRuntimeMethods().SingleOrDefault(m => m.Name == methodName);
 #else
             return t.GetMethod(methodName);

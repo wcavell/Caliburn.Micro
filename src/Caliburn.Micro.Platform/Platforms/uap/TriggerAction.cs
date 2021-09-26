@@ -1,6 +1,12 @@
 ﻿namespace Caliburn.Micro {
     using Microsoft.Xaml.Interactivity;
+
+#if WINDOWS_UWP
     using Windows.UI.Xaml;
+#else
+    using Microsoft.UI.Xaml;
+#endif
+    
 
     /// <summary>
     /// Represents an attachable object that encapsulates a unit of functionality.

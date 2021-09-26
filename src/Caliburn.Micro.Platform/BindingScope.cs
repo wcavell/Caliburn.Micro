@@ -8,6 +8,12 @@
     using Windows.UI.Xaml.Controls;
     using Windows.UI.Xaml.Controls.Primitives;
     using Windows.UI.Xaml.Media;
+#elif WINUI
+    using System.ServiceModel;
+    using Microsoft.UI.Xaml;
+    using Microsoft.UI.Xaml.Controls;
+    using Microsoft.UI.Xaml.Controls.Primitives;
+    using Microsoft.UI.Xaml.Media;
 #else
     using System.Windows;
     using System.Windows.Controls;
@@ -26,15 +32,15 @@
         {
             AddChildResolver<ContentControl>(e => new[] { e.Content as DependencyObject });
             AddChildResolver<ItemsControl>(e => e.Items.OfType<DependencyObject>().ToArray() );
-#if !WINDOWS_UWP
+#if !WINDOWS_UWP&&!WINUI
             AddChildResolver<HeaderedContentControl>(e => new[] { e.Header as DependencyObject });
             AddChildResolver<HeaderedItemsControl>(e => new[] { e.Header as DependencyObject });
 #endif
-#if WINDOWS_UWP
+#if WINDOWS_UWP||WINUI
             AddChildResolver<SemanticZoom>(e => new[] { e.ZoomedInView as DependencyObject, e.ZoomedOutView as DependencyObject });
             AddChildResolver<ListViewBase>(e => new[] { e.Header as DependencyObject });
 #endif
-#if WINDOWS_UWP
+#if WINDOWS_UWP||WINUI
             AddChildResolver<ListViewBase>(e => new[] { e.Footer as DependencyObject });
             AddChildResolver<Hub>(ResolveHub);
             AddChildResolver<HubSection>(e => new[] { e.Header as DependencyObject });
@@ -42,7 +48,7 @@
             AddChildResolver<Button>(e => ResolveFlyoutBase(e.Flyout));
             AddChildResolver<FrameworkElement>(e => ResolveFlyoutBase(FlyoutBase.GetAttachedFlyout(e)));
 #endif
-#if WINDOWS_UWP
+#if WINDOWS_UWP||WINUI
             AddChildResolver<SplitView>(e => new[] { e.Pane as DependencyObject, e.Content as DependencyObject });
 #endif
         }
@@ -54,7 +60,7 @@
         /// <param name="name">The name to search for.</param>
         /// <returns>The named element or null if not found.</returns>
         public static FrameworkElement FindName(this IEnumerable<FrameworkElement> elementsToSearch, string name) {
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
             return elementsToSearch.FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 #else
             return elementsToSearch.FirstOrDefault(x => x.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
@@ -172,7 +178,7 @@
                     continue;
                 }
 
-#if NET || NETCORE
+#if (NET || NETCORE)&&!WINUI
                 var childCount = (current is Visual || current is Visual3D)
                     ? VisualTreeHelper.GetChildrenCount(current) : 0;
 #else
@@ -185,7 +191,7 @@
                         queue.Enqueue(childDo);
                     }
 
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
                     var page = current as Page;
 
                     if (page != null) {
@@ -219,7 +225,7 @@
             return descendants;
         };
 
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
         private static IEnumerable<DependencyObject> ResolveFlyoutBase(FlyoutBase flyoutBase) {
             if (flyoutBase == null)
                 yield break;
@@ -300,7 +306,7 @@
                 if ((bool) root.GetValue(View.IsScopeRootProperty))
                     break;
 
-#if WINDOWS_UWP
+#if WINDOWS_UWP||WINUI
                 if (root is AppBar) {
                     var frame = Window.Current.Content as Frame;
                     var page = (frame != null) ? frame.Content as Page : null;

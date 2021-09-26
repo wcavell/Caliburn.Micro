@@ -1,4 +1,6 @@
-﻿#if XFORMS
+﻿
+
+#if XFORMS
 namespace Caliburn.Micro.Xamarin.Forms
 #else
 namespace Caliburn.Micro
@@ -7,6 +9,10 @@ namespace Caliburn.Micro
 #if WINDOWS_UWP
     using System.Linq;
     using Windows.UI.Xaml;
+    using System.Reflection;
+#elif WINUI 
+    using Microsoft.UI.Xaml; 
+    using System.Linq;
     using System.Reflection;
 #elif XFORMS
     using UIElement = global::Xamarin.Forms.Element;
@@ -122,7 +128,7 @@ namespace Caliburn.Micro
 
             var context = new ActionExecutionContext {
                 Target = target,
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
                 Method = target.GetType().GetRuntimeMethods().Single(m => m.Name == methodName),
 #else
                 Method = target.GetType().GetMethod(methodName),

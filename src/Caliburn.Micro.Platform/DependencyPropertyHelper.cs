@@ -4,6 +4,8 @@ using Xamarin.Forms;
 using DependencyProperty = Xamarin.Forms.BindableProperty;
 #elif WINDOWS_UWP
 using Windows.UI.Xaml;
+#elif WINUI
+using Microsoft.UI.Xaml;
 #else
 using System.Windows;
 #endif

@@ -12,7 +12,10 @@ namespace Caliburn.Micro
     using System.ComponentModel;
 #if WINDOWS_UWP
     using Windows.UI.Xaml.Controls;
+#elif WINUI
+    using Microsoft.UI.Xaml.Controls;
 #endif
+
 
     /// <summary>
     /// A service that is capable of properly binding values to a method's parameters and creating instances of <see cref="IResult"/>.
@@ -32,7 +35,7 @@ namespace Caliburn.Micro
 #else
                 {"$datacontext", c => c.Source.DataContext},
 #endif
-#if WINDOWS_UWP
+#if WINDOWS_UWP || WINUI
                 {"$clickeditem", c => ((ItemClickEventArgs)c.EventArgs).ClickedItem},
 #endif
                 {"$source", c => c.Source},
@@ -111,7 +114,7 @@ namespace Caliburn.Micro
             }
 
             try {
-#if !WINDOWS_UWP && !XFORMS
+#if !WINDOWS_UWP && !XFORMS&&!WINUI
                 var converter = TypeDescriptor.GetConverter(destinationType);
 
                 if (converter.CanConvertFrom(providedType)) {
@@ -124,7 +127,7 @@ namespace Caliburn.Micro
                     return converter.ConvertTo(providedValue, destinationType);
                 }
 #endif
-#if WINDOWS_UWP || XFORMS
+#if WINDOWS_UWP || XFORMS||WINUI
                 if (destinationType.GetTypeInfo().IsEnum) {
 #else
                 if (destinationType.IsEnum) {
@@ -162,7 +165,7 @@ namespace Caliburn.Micro
         /// <param name="type">The type.</param>
         /// <returns>The default value.</returns>
         public static object GetDefaultValue(Type type) {
-#if WINDOWS_UWP || XFORMS
+#if WINDOWS_UWP || XFORMS||WINUI
             var typeInfo = type.GetTypeInfo();
             return typeInfo.IsClass || typeInfo.IsInterface ? null : System.Activator.CreateInstance(type);
 #else

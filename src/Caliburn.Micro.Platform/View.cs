@@ -1,4 +1,6 @@
-﻿#if XFORMS
+﻿
+
+#if XFORMS
 namespace Caliburn.Micro.Xamarin.Forms
 #else
 namespace Caliburn.Micro
@@ -21,6 +23,14 @@ namespace Caliburn.Micro
     using DependencyProperty = global::Xamarin.Forms.BindableProperty;
     using DependencyObject = global::Xamarin.Forms.BindableObject;
     using ContentControl = global::Xamarin.Forms.ContentView;
+#elif WINUI
+    using Windows.ApplicationModel;
+    using System.Reflection;
+    using Microsoft.ApplicationModel;
+    using Microsoft.UI.Xaml;
+    using Microsoft.UI.Xaml.Controls;
+    using Microsoft.UI.Xaml.Markup;
+    using Microsoft.UI.Xaml.Media;
 #else
     using System.ComponentModel;
     using System.Windows;
@@ -33,7 +43,7 @@ namespace Caliburn.Micro
     /// </summary>
     public static class View {
         static readonly ILog Log = LogManager.GetLog(typeof(View));
-#if WINDOWS_UWP || XFORMS
+#if WINDOWS_UWP || XFORMS||WINUI
         const string DefaultContentPropertyName = "Content";
 #else
         static readonly ContentPropertyAttribute DefaultContentProperty = new ContentPropertyAttribute("Content");
@@ -117,7 +127,7 @@ namespace Caliburn.Micro
             handler(element, new RoutedEventArgs());
             return true;
 #else
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
             if (IsElementLoaded(element)) {
 #else
             if (element.IsLoaded) {
@@ -153,7 +163,7 @@ namespace Caliburn.Micro
 #endif
         }
 
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
         /// <summary>
         /// Determines whether the specified <paramref name="element"/> is loaded.
         /// </summary>
@@ -190,7 +200,7 @@ namespace Caliburn.Micro
         /// </summary>
         /// <param name="element">The element.</param>
         /// <param name="handler">The handler.</param>
-#if WINDOWS_UWP
+#if WINDOWS_UWP ||WINUI
         public static void ExecuteOnLayoutUpdated(FrameworkElement element, EventHandler<object> handler) {
             EventHandler<object> onLayoutUpdate = null;
 #else
@@ -224,7 +234,7 @@ namespace Caliburn.Micro
                 if (dependencyObject is ContentControl) {
                     return ((ContentControl)dependencyObject).Content;
                 }
-#if WINDOWS_UWP || XFORMS
+#if WINDOWS_UWP || XFORMS ||WINUI
                 var type = dependencyObject.GetType();
                 var contentPropertyName = GetContentPropertyName(type);
 
@@ -355,7 +365,7 @@ namespace Caliburn.Micro
             return SetContentPropertyCore(targetLocation, view);
         }
 
-#if WINDOWS_UWP || XFORMS
+#if WINDOWS_UWP || XFORMS ||WINUI
         static bool SetContentPropertyCore(object targetLocation, object view) {
             try {
                 var type = targetLocation.GetType();
@@ -413,7 +423,7 @@ namespace Caliburn.Micro
                 {
 #if XFORMS
                     inDesignMode = false;
-#elif WINDOWS_UWP
+#elif WINDOWS_UWP ||WINUI
                     inDesignMode = DesignMode.DesignModeEnabled;
 #else
                     var descriptor = DependencyPropertyDescriptor.FromProperty(DesignerProperties.IsInDesignModeProperty, typeof(FrameworkElement));
